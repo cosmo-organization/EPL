@@ -5,10 +5,23 @@ float test()
   beta=4+beta;
   beta=beta;
 }
-float test2()
-{
-  float x,y,alpha,lambda;
-  float beta;
-  beta=4+beta;
-  beta=beta*beta/beta+beta-beta;
+float test2(){
+  float x,y,z;
+  x=0.0;
+  y=0.1;
+  z=0.2;
+  float w;
+  w=x*y/z*(5*5)*(-55);
 }
+float test3(){
+  float z,w,m;
+}
+float dx(){
+  float x,y,z,w,m,c;
+  x=1.0;
+}
+float something(){
+  float x;
+  x=y;
+}
+#only single line comment supported

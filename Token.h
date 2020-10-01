@@ -1,6 +1,6 @@
 #ifndef TOKEN_H
 #define TOKEN_H
-enum TT{
+enum class TT{
 	IDENTIFIER,
 	NUMBER,
 	DIV,

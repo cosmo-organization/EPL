@@ -3,16 +3,22 @@
 #include "InstanceManager.h"
 #include "Parser.h"
 #include <string.h>
+#include <fstream>
+#include <iostream>
+#include <string>
+using namespace std;
 int main(int argc, char** argv) {
-	char* sourcecode=new char[2048];
-	FILE* file=fopen("sample.txt","r");
-	int c=0;
-	while(!feof(file)){
-		sourcecode[c++]=fgetc(file);
+	char* filename = "sampleprogram.txt";
+	std::ifstream infile(filename);
+	string tmp;
+	string sourcecode("");
+	while (getline(infile, tmp)) {
+		sourcecode.append(tmp.c_str());
+		sourcecode.append("\n");
 	}
-	sourcecode[strlen(sourcecode)-1]='\0';
-	fclose(file);
-	Lexer* lexer=new Lexer(sourcecode);
+	cout << sourcecode.c_str();
+	infile.close();
+	Lexer* lexer=new Lexer(sourcecode.c_str());
 	InstanceManager::handler->throwError();
 	std::vector<Token*> tokens=lexer->_tokens();
 //	for (int i=0;i<tokens.size();i++){
@@ -23,6 +29,6 @@ int main(int argc, char** argv) {
 	printf("Successfully parsed no error-----\n");
 	delete parser;
 	delete lexer;
-	delete sourcecode;
+	sourcecode.clear();
 	return 0;
 }

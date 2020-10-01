@@ -1,6 +1,7 @@
 #include "Parser.h"
 #include <stdio.h>
 #include <string.h>
+#include <string>
 #include <stdlib.h>
 Parser::Parser(std::vector<Token*> token_stream)
 {
@@ -8,7 +9,11 @@ Parser::Parser(std::vector<Token*> token_stream)
 	this->cc=0;
 	this->ct=this->tokens[this->cc];
 }
-
+bool isequal(const char* s1, const char* s2) {
+	std::string s1c(s1);
+	std::string s2c(s2);
+	return s1c.compare(s2c);
+}
 Parser::~Parser()
 {
 	this->tokens.clear();
@@ -17,17 +22,18 @@ Parser::~Parser()
 }
 void Parser::parse(){
 	int ctc=0;
-	while (ct->t()!=EOFS)
-	  FUN();
-	eat(EOFS);
+	while (ct->t() != TT::EOFS) {
+		FUN();
+	}
+	eat(TT::EOFS);
 }
 void Parser::E(){
 	T();
-	while (this->ct->t() == ADD || this->ct->t() == SUB){
-		if (ct->t()==ADD){
+	while (this->ct->t() == TT::ADD || this->ct->t() == TT::SUB){
+		if (ct->t()== TT::ADD){
 			next();
 			T();
-		}else if(ct->t()==SUB){
+		}else if(ct->t()== TT::SUB){
 			next();
 			T();
 		}
@@ -36,27 +42,27 @@ void Parser::E(){
 }
 void Parser::T(){
 	F();
-	while (ct->t() == DIV||ct->t()==MUL){
-		if (ct->t()==DIV){
+	while (ct->t() == TT::DIV||ct->t()== TT::MUL){
+		if (ct->t()== TT::DIV){
 			next();
 			F();
-		}else if (ct->t()==MUL){
+		}else if (ct->t()== TT::MUL){
 			next();
 			F();
 		}
 	}
 }
 void Parser::F(){
-	if (ct->t() == NUMBER){
+	if (ct->t() == TT::NUMBER){
 		next();
-	}else if(ct->t() == LPAREN){
+	}else if(ct->t() == TT::LPAREN){
 		next();
 		E();
-		next(RPAREN);
-	}else if(ct->t()==SUB){
+		eat(TT::RPAREN);
+	}else if(ct->t()== TT::SUB){
 		next();
 		F();
-	}else if (ct->t()==IDENTIFIER){
+	}else if (ct->t()== TT::IDENTIFIER){
 		if (strcmp(ct->val(),curfun)==0){
 		char* err=new char[100];
 		sprintf(err,"function name:'%s' not used as variable at line:%d,col:%d\n",
@@ -73,28 +79,28 @@ void Parser::F(){
 }
 void Parser::FUN(){
 	this->varlist.clear();
-	eat(KEYWORD);
-	eat(IDENTIFIER);
+	eat(TT::KEYWORD);
+	eat(TT::IDENTIFIER);
 	previous();
 	if (haveFunc(ct))
-	 InstanceManager::handler->redeclared(ct,this->sameAsThisFun(ct));
+	 InstanceManager::handler->redeclared(this->sameAsThisFun(ct),ct);
 	this->curfun=ct->val();
 	this->functions.push_back(ct);
-	eat(IDENTIFIER);
-	eat(LPAREN);
-	eat(RPAREN);
-	eat(OCURLY);
-	while (ct->t()!=CCURLY){
+	eat(TT::IDENTIFIER);
+	eat(TT::LPAREN);
+	eat(TT::RPAREN);
+	eat(TT::OCURLY);
+	while (ct->t()!= TT::CCURLY){
 		A();
 	}
-	eat(CCURLY);
+	eat(TT::CCURLY);
 }
 void Parser::S(){
 	A();
 }
 bool Parser::haveFunc(Token* t){
 	for (int i=0;i<this->functions.size();i++){
-		if (strcmp(ct->val(),functions[i]->val())==0){
+		if (isequal(ct->val(),functions[i]->val())==0){
 			return true;
 		}
 	}
@@ -102,30 +108,30 @@ bool Parser::haveFunc(Token* t){
 }
 Token* Parser::sameAsThisFun(Token* fun){
 	for (int i=0;i<this->functions.size();i++){
-		if (strcmp(ct->val(),functions[i]->val())==0){
+		if (isequal(ct->val(),functions[i]->val())==0){
 			return functions[i];
 		}
 	}
 }
 void Parser::A(){
-	if (ct->t()==KEYWORD){
-		eat(KEYWORD);
-		eat(IDENTIFIER);
+	if (ct->t()== TT::KEYWORD){
+		eat(TT::KEYWORD);
+		eat(TT::IDENTIFIER);
 		previous();
 		if (this->have(ct))InstanceManager::handler->redeclared(this->sameNameAs(ct),ct);
 		this->varlist.push_back(ct);
-		eat(IDENTIFIER);
-		while (ct->t() != S_COL){
-			eat(COMMA);
-			eat(IDENTIFIER);
+		eat(TT::IDENTIFIER);
+		while (ct->t() != TT::S_COL){
+			eat(TT::COMMA);
+			eat(TT::IDENTIFIER);
 			previous();
 			if (this->have(ct))InstanceManager::handler->redeclared(this->sameNameAs(ct),ct);
 			this->varlist.push_back(ct);
-			eat(IDENTIFIER);
+			eat(TT::IDENTIFIER);
 		}
-		eat(S_COL);
+		eat(TT::S_COL);
 	}else{
-	eat(IDENTIFIER);
+	eat(TT::IDENTIFIER);
 	previous();
 	if (strcmp(ct->val(),curfun)==0){
 		char* err=new char[100];
@@ -138,22 +144,23 @@ void Parser::A(){
 	}
 	if (!have(ct))
 	  InstanceManager::handler->undefinedIdentifier(ct);
-	eat(IDENTIFIER);
-	eat(EQUAL);
+	eat(TT::IDENTIFIER);
+	eat(TT::EQUAL);
 	E();
-	eat(S_COL);
+	eat(TT::S_COL);
    }
 }
 Token* Parser::sameNameAs(Token* t){
 	for (int i=0;i<this->varlist.size();i++){
-		if (strcmp(ct->val(),varlist[i]->val())==0){
+		if (isequal(ct->val(),varlist[i]->val())==0){
 			return varlist[i];
 		}
 	}
+	return NULL;
 }
 bool Parser::have(Token* declvar){
 	for (int i=0;i<this->varlist.size();i++){
-		if (strcmp(ct->val(),varlist[i]->val())==0){
+		if (isequal(ct->val(),varlist[i]->val())==0){
 			return true;
 		}
 	}
@@ -169,33 +176,33 @@ void Parser::next(){
 }
 const char* Parser::getTypeVal(TT type){
 	switch(type){
-		case DIV:
+		case TT::DIV:
 			return "/";
-		case MUL:
+		case TT::MUL:
 			return "*";
-		case ADD:
+		case TT::ADD:
 			return "+";
-		case SUB:
+		case TT::SUB:
 			return "-";
-		case OCURLY:
+		case TT::OCURLY:
 			return "{";
-		case CCURLY:
+		case TT::CCURLY:
 			return "}";
-		case LPAREN:
+		case TT::LPAREN:
 			return "(";
-		case RPAREN:
+		case TT::RPAREN:
 			return ")";
-		case S_COL:
+		case TT::S_COL:
 			return ";";
-		case COMMA:
+		case TT::COMMA:
 			return ",";
-		case IDENTIFIER:
+		case TT::IDENTIFIER:
 			return "NAME";
-		case KEYWORD:
+		case TT::KEYWORD:
 			return "KEYWORD";
-		case EOFS:
+		case TT::EOFS:
 			return "EOF Exception";
-		case EQUAL:
+		case TT::EQUAL:
 			return "=";
 		default:
 			return "";
