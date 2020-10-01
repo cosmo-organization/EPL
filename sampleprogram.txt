@@ -1,0 +1,14 @@
+float test()
+{
+  float x,y,alpha,lambda;
+  float beta;
+  beta=4+beta;
+  beta=beta;
+}
+float test2()
+{
+  float x,y,alpha,lambda;
+  float beta;
+  beta=4+beta;
+  beta=beta*beta/beta+beta-beta;
+}
